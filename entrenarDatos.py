@@ -10,6 +10,7 @@ datosEntrena = [[],[],[],[],[],[]]
 datosPrueba = [[],[],[],[],[],[]]
 dicParaEntrenar = {}
 dicParaPrueba = {}
+clases = []
 
 with open('datos.csv','r') as archivo:
     reader = csv.reader(archivo)
@@ -46,15 +47,19 @@ for j in range(34):
 for numClase in range(6):
     cantInstancias  = len(datosEntrena[numClase])
     for numInstancia in range(cantInstancias):
+        #Agrega cada clase de las instancias de entrenamiento
+        clases.append(numClase)
         instancia = datosEntrena[numClase][numInstancia]
         cantAtrib = len(instancia)
         for numAtrib in range(cantAtrib):
             dicParaEntrenar[str(numAtrib)].append(instancia[numAtrib])
 
 #Se agrega datos para el diccionario de prueba
+#De las seis clases
 for numClase in range(6):
     cantInstancias  = len(datosPrueba[numClase])
-    for numInstancia in range(cantInstancias):
+    #Probara con dos instancias de cada clase
+    for numInstancia in range(2):
         instancia = datosPrueba[numClase][numInstancia]
         cantAtrib = len(instancia)
         for numAtrib in range(cantAtrib):
@@ -62,7 +67,15 @@ for numClase in range(6):
 
 entrenamiento = DataFrame(dicParaEntrenar)
 pruebas = DataFrame(dicParaPrueba)
-        
-    
 
+perc = MLPClassifier(hidden_layer_sizes=(30,20), activation='relu', solver='adam', 
+	alpha=0.0001, batch_size='auto', learning_rate='constant', learning_rate_init=0.001, power_t=0.5, 
+	max_iter=200, shuffle=True, random_state=None, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, 
+	nesterovs_momentum=True, early_stopping=False, validation_fraction=0.1, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
+perc.n_layers=4
+perc.n_outputs_=3
+perc.classes_=clases
+perc.fit(entrenamiento,clases)
+
+print perc.predict(pruebas)
