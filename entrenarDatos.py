@@ -3,6 +3,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neural_network import MLPClassifier
+from sklearn import svm
 from pandas import *
 
 datos = [[],[],[],[],[],[]]
@@ -11,6 +12,7 @@ datosPrueba = [[],[],[],[],[],[]]
 dicParaEntrenar = {}
 dicParaPrueba = {}
 clases = []
+clasesEsperadas = []
 
 with open('datos.csv','r') as archivo:
     reader = csv.reader(archivo)
@@ -48,7 +50,7 @@ for numClase in range(6):
     cantInstancias  = len(datosEntrena[numClase])
     for numInstancia in range(cantInstancias):
         #Agrega cada clase de las instancias de entrenamiento
-        clases.append(numClase)
+        clases.append(numClase+1)
         instancia = datosEntrena[numClase][numInstancia]
         cantAtrib = len(instancia)
         for numAtrib in range(cantAtrib):
@@ -60,6 +62,7 @@ for numClase in range(6):
     cantInstancias  = len(datosPrueba[numClase])
     #Probara con dos instancias de cada clase
     for numInstancia in range(2):
+    	clasesEsperadas.append(numClase+1)
         instancia = datosPrueba[numClase][numInstancia]
         cantAtrib = len(instancia)
         for numAtrib in range(cantAtrib):
@@ -68,14 +71,29 @@ for numClase in range(6):
 entrenamiento = DataFrame(dicParaEntrenar)
 pruebas = DataFrame(dicParaPrueba)
 
-perc = MLPClassifier(hidden_layer_sizes=(30,20), activation='relu', solver='adam', 
+#Creacion de la Red Neuronal MLP
+percMLP = MLPClassifier(hidden_layer_sizes=(30,20), activation='relu', solver='adam', 
 	alpha=0.0001, batch_size='auto', learning_rate='constant', learning_rate_init=0.001, power_t=0.5, 
 	max_iter=2000, shuffle=True, random_state=None, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, 
 	nesterovs_momentum=True, early_stopping=False, validation_fraction=0.1, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
-perc.n_layers=4
-perc.n_outputs_=3
-perc.classes_=clases
-perc.fit(entrenamiento,clases)
+percMLP.n_layers=4
+percMLP.n_outputs_=3
+percMLP.classes_=clases
+percMLP.fit(entrenamiento,clases)
 
-print perc.predict(pruebas)
+#Creacion de la Red Neuronal con RBF
+percRBF = svm.SVC(kernel="rbf")
+percRBF.fit(entrenamiento,clases)
+
+print "** Datos de Prueba **"
+print pruebas
+
+print "** Clases Esperadas **"
+print clasesEsperadas
+
+#Imprimimos los resultados
+print "** Clasificando con el MLP **"
+print percMLP.predict(pruebas)
+print "** Clasificando con el SVC con RBF **"
+print percRBF.predict(pruebas)
