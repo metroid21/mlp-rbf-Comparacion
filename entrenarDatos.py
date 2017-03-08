@@ -7,6 +7,7 @@ import collections
 from sklearn.neural_network import MLPClassifier
 from sklearn import svm
 from sklearn.cluster import KMeans
+from sklearn import mixture
 from pandas import *
 from scipy.stats import mode
 
@@ -82,10 +83,7 @@ entrenamiento = DataFrame(dicParaEntrenar)
 pruebas = DataFrame(dicParaPrueba)
 
 #Creacion de la Red Neuronal MLP
-percMLP = MLPClassifier(hidden_layer_sizes=(30,20), activation='relu', solver='adam', 
-    alpha=0.0001, batch_size='auto', learning_rate='constant', learning_rate_init=0.001, power_t=0.5, 
-    max_iter=2000, shuffle=True, random_state=None, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, 
-    nesterovs_momentum=True, early_stopping=False, validation_fraction=0.1, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+percMLP = MLPClassifier(hidden_layer_sizes=(30,20))
 
 percMLP.n_layers=4
 percMLP.n_outputs_=3
@@ -96,6 +94,10 @@ percMLP.fit(entrenamiento,clases)
 percRBF = svm.SVC(kernel="rbf")
 percRBF.fit(entrenamiento,clases)
 
+#Creacion de la red neuronal con mezcla gausiana
+gmm = mixture.GaussianMixture(n_components=6,max_iter=250)
+gmm.fit(entrenamiento)
+
 #Creacion de una red con kmeans
 percKM = KMeans(n_clusters=6)
 percKM.fit(entrenamiento)
@@ -103,6 +105,8 @@ percKM.fit(entrenamiento)
 resultadosMLP = percMLP.predict(pruebas)
 resultadosRBF = percRBF.predict(pruebas)
 resultadosKM  = percKM.predict(pruebas)
+resultadosG = gmm.predict(pruebas)
+
 
 #Calculamos la posicion de cada centro en relacion de cada clase
 labels_centros = []
@@ -127,10 +131,14 @@ for numClase in range(6):
     cantClasiCorrectRBF = np.count_nonzero(listaResultClaseRBF == (numClase+1))    
     listaResultClaseKM  = resultadosKM[indiceInicio:(indiceInicio+cantEsperadas)]
     cantClasiCorrectKM  = np.count_nonzero(listaResultClaseKM == labels_centros[numClase])    
+    listaResultClaseG = resultadosG[indiceInicio:(indiceInicio+cantEsperadas)]
+    cantClasiCorrectG  = np.count_nonzero(listaResultClaseG == (numClase+1))    
+
     print "\tExito\tError"    
     print "MLP:\t", cantClasiCorrectMLP, "\t",(cantEsperadas-cantClasiCorrectMLP)
     print "RBF \t", cantClasiCorrectRBF,"\t",(cantEsperadas-cantClasiCorrectRBF)
     print "KM \t",  cantClasiCorrectKM,"\t",(cantEsperadas-cantClasiCorrectKM)
+    print "G \t",  cantClasiCorrectG,"\t",(cantEsperadas-cantClasiCorrectG)
     print "Total ", len(datosPrueba[numClase])
     print
     indiceInicio += cantEsperadas
