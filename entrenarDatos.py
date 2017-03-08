@@ -1,11 +1,14 @@
 import csv
+
 # Librerias de redes neuronales para python
 import numpy as np
 import matplotlib.pyplot as plt
 import collections
 from sklearn.neural_network import MLPClassifier
 from sklearn import svm
+from sklearn.cluster import KMeans
 from pandas import *
+from scipy.stats import mode
 
 datos = [[],[],[],[],[],[]]
 datosEntrena = [[],[],[],[],[],[]]
@@ -46,9 +49,12 @@ for j in range(len(datos[0][0])):
     dicParaEntrenar[str(j)] = []
     dicParaPrueba[str(j)] = []
 
+cantidadPorClase = [];
+
 #Se agrega los datos al diccionario de entrenamiento
 for numClase in range(6):
     cantInstancias  = len(datosEntrena[numClase])
+    cantidadPorClase.append(cantInstancias)
     for numInstancia in range(cantInstancias):
         #Agrega cada clase de las instancias de entrenamiento
         clases.append(numClase+1)
@@ -90,20 +96,24 @@ percMLP.fit(entrenamiento,clases)
 percRBF = svm.SVC(kernel="rbf")
 percRBF.fit(entrenamiento,clases)
 
-"""print "** Datos de Prueba **"
-print pruebas
-
-print "** Clases Esperadas **"
-print clasesEsperadas"""
+#Creacion de una red con kmeans
+percKM = KMeans(n_clusters=6)
+percKM.fit(entrenamiento)
 
 resultadosMLP = percMLP.predict(pruebas)
 resultadosRBF = percRBF.predict(pruebas)
-#Imprimimos los resultados
-"""
-print "** Clasificando con el MLP **"
-print resultadosMLP
-print "** Clasificando con el SVC con RBF **"
-print resultadosRBF"""
+resultadosKM  = percKM.predict(pruebas)
+
+#Calculamos la posicion de cada centro en relacion de cada clase
+labels_centros = []
+sum = 0
+for i in range(len(cantidadPorClase)):
+    cantInst = cantidadPorClase[i]
+    sum += cantInst
+    list = percKM.labels_[sum-cantInst: sum]
+    labels_centros.append(mode(list)[0][0])
+
+print labels_centros
 
 #Imprimimos resultados de pruebas por clase
 indiceInicio = 0
@@ -115,9 +125,12 @@ for numClase in range(6):
     cantClasiCorrectMLP = np.count_nonzero(listaResultClaseMLP == (numClase+1))
     listaResultClaseRBF = resultadosRBF[indiceInicio:(indiceInicio+cantEsperadas)]
     cantClasiCorrectRBF = np.count_nonzero(listaResultClaseRBF == (numClase+1))    
+    listaResultClaseKM  = resultadosKM[indiceInicio:(indiceInicio+cantEsperadas)]
+    cantClasiCorrectKM  = np.count_nonzero(listaResultClaseKM == labels_centros[numClase])    
     print "\tExito\tError"    
     print "MLP:\t", cantClasiCorrectMLP, "\t",(cantEsperadas-cantClasiCorrectMLP)
     print "RBF \t", cantClasiCorrectRBF,"\t",(cantEsperadas-cantClasiCorrectRBF)
+    print "KM \t",  cantClasiCorrectKM,"\t",(cantEsperadas-cantClasiCorrectKM)
     print "Total ", len(datosPrueba[numClase])
     print
     indiceInicio += cantEsperadas
