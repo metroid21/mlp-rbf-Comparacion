@@ -83,10 +83,9 @@ entrenamiento = DataFrame(dicParaEntrenar)
 pruebas = DataFrame(dicParaPrueba)
 
 #Creacion de la Red Neuronal MLP
-percMLP = MLPClassifier(hidden_layer_sizes=(30,20))
+percMLP = MLPClassifier(hidden_layer_sizes=(30,20,10))
 
-percMLP.n_layers=4
-percMLP.n_outputs_=3
+percMLP.n_outputs_=6
 percMLP.classes_=clases
 percMLP.fit(entrenamiento,clases)
 
@@ -136,8 +135,8 @@ for numClase in range(6):
 
     print "\tExito\tError"    
     print "MLP:\t", cantClasiCorrectMLP, "\t",(cantEsperadas-cantClasiCorrectMLP)
-    print "RBF \t", cantClasiCorrectRBF,"\t",(cantEsperadas-cantClasiCorrectRBF)
-    print "KM \t",  cantClasiCorrectKM,"\t",(cantEsperadas-cantClasiCorrectKM)
+    #print "RBF \t", cantClasiCorrectRBF,"\t",(cantEsperadas-cantClasiCorrectRBF)
+    #print "KM \t",  cantClasiCorrectKM,"\t",(cantEsperadas-cantClasiCorrectKM)
     print "G \t",  cantClasiCorrectG,"\t",(cantEsperadas-cantClasiCorrectG)
     print "Total ", len(datosPrueba[numClase])
     print
