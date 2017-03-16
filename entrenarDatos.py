@@ -89,23 +89,23 @@ percMLP.n_outputs_=6
 percMLP.classes_=clases
 percMLP.fit(entrenamiento,clases)
 
-#Creacion de la Red Neuronal con RBF
-percRBF = svm.SVC(kernel="rbf")
-percRBF.fit(entrenamiento,clases)
+#Creacion de la Red Neuronal con SVM
+percSVM = svm.SVC(kernel="rbf")
+percSVM.fit(entrenamiento,clases)
 
 #Creacion de la red neuronal con mezcla gausiana
 gmm = mixture.GaussianMixture(n_components=6,max_iter=250)
-gmm.fit(entrenamiento)
+gmm.fit(entrenamiento,clases)
 
 #Creacion de una red con kmeans
 percKM = KMeans(n_clusters=6)
-percKM.fit(entrenamiento)
+percKM.fit(entrenamiento,clases)
 
 resultadosMLP = percMLP.predict(pruebas)
-resultadosRBF = percRBF.predict(pruebas)
+resultadosSVM = percSVM.predict(pruebas)
 resultadosKM  = percKM.predict(pruebas)
-resultadosG = gmm.predict(pruebas)
-
+resultadosG   = gmm.predict(pruebas)
+resultadosG2  = gmm.predict(entrenamiento)
 
 #Calculamos la posicion de cada centro en relacion de cada clase
 labels_centros = []
@@ -116,7 +116,16 @@ for i in range(len(cantidadPorClase)):
     list = percKM.labels_[sum-cantInst: sum]
     labels_centros.append(mode(list)[0][0])
 
+labels_centros2 = []
+sum2 = 0
+for i in range(len(cantidadPorClase)):
+    cantInst = cantidadPorClase[i]
+    sum2 += cantInst
+    list = resultadosG2[sum2-cantInst: sum2]
+    labels_centros2.append(mode(list)[0][0])
+
 print labels_centros
+print resultadosKM
 
 #Imprimimos resultados de pruebas por clase
 indiceInicio = 0
@@ -126,17 +135,17 @@ for numClase in range(6):
     cantEsperadas = clasesEsperadas.count(numClase+1)
     listaResultClaseMLP = resultadosMLP[indiceInicio:(indiceInicio+cantEsperadas)]
     cantClasiCorrectMLP = np.count_nonzero(listaResultClaseMLP == (numClase+1))
-    listaResultClaseRBF = resultadosRBF[indiceInicio:(indiceInicio+cantEsperadas)]
-    cantClasiCorrectRBF = np.count_nonzero(listaResultClaseRBF == (numClase+1))    
+    listaResultClaseSVM = resultadosSVM[indiceInicio:(indiceInicio+cantEsperadas)]
+    cantClasiCorrectSVM = np.count_nonzero(listaResultClaseSVM == (numClase+1))    
     listaResultClaseKM  = resultadosKM[indiceInicio:(indiceInicio+cantEsperadas)]
     cantClasiCorrectKM  = np.count_nonzero(listaResultClaseKM == labels_centros[numClase])    
     listaResultClaseG = resultadosG[indiceInicio:(indiceInicio+cantEsperadas)]
-    cantClasiCorrectG  = np.count_nonzero(listaResultClaseG == (numClase+1))    
+    cantClasiCorrectG  = np.count_nonzero(listaResultClaseG == labels_centros2[numClase])    
 
     print "\tExito\tError"    
     print "MLP:\t", cantClasiCorrectMLP, "\t",(cantEsperadas-cantClasiCorrectMLP)
-    #print "RBF \t", cantClasiCorrectRBF,"\t",(cantEsperadas-cantClasiCorrectRBF)
-    #print "KM \t",  cantClasiCorrectKM,"\t",(cantEsperadas-cantClasiCorrectKM)
+    #print "SVM \t", cantClasiCorrectSVM,"\t",(cantEsperadas-cantClasiCorrectSVM)
+    print "KM \t",  cantClasiCorrectKM,"\t",(cantEsperadas-cantClasiCorrectKM)
     print "G \t",  cantClasiCorrectG,"\t",(cantEsperadas-cantClasiCorrectG)
     print "Total ", len(datosPrueba[numClase])
     print
